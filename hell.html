@@ -1,0 +1,1608 @@
+<style>
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: #000;
+    color: #00ff41;
+    font-family: Consolas, "Courier New", monospace;
+}
+
+/* ================= MATRIX ================= */
+
+#matrix {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    opacity: 0.45;
+}
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    background:
+        radial-gradient(
+            circle at center,
+            rgba(0,255,65,0.08),
+            rgba(0,0,0,0.94) 72%
+        );
+}
+
+.scanlines {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    pointer-events: none;
+
+    background: repeating-linear-gradient(
+        to bottom,
+        rgba(0,255,65,0.025) 0px,
+        rgba(0,255,65,0.025) 1px,
+        transparent 2px,
+        transparent 4px
+    );
+}
+
+/* ================= CONTAINER ================= */
+
+.container {
+    position: relative;
+    z-index: 5;
+
+    width: 100%;
+    height: 100%;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    padding: 20px;
+}
+
+.terminal {
+    width: min(1050px, 95vw);
+    min-height: 610px;
+    max-height: 95vh;
+
+    padding: 35px;
+
+    border: 1px solid rgba(0,255,65,0.75);
+
+    background: rgba(0,10,4,0.90);
+
+    box-shadow:
+        0 0 20px rgba(0,255,65,0.25),
+        0 0 70px rgba(0,255,65,0.08),
+        inset 0 0 50px rgba(0,255,65,0.03);
+
+    backdrop-filter: blur(5px);
+}
+
+/* ================= HEADER ================= */
+
+.header {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.logo {
+    font-size: clamp(38px, 6vw, 75px);
+
+    font-weight: bold;
+
+    letter-spacing: 8px;
+
+    text-shadow:
+        0 0 5px #00ff41,
+        0 0 15px #00ff41,
+        0 0 30px #00ff41,
+        0 0 60px #00ff41;
+
+    animation: flicker 2s infinite;
+}
+
+.subtitle {
+    margin-top: 10px;
+
+    color: #7aff9b;
+
+    font-size: 14px;
+
+    letter-spacing: 4px;
+}
+
+/* ================= BOOT TERMINAL ================= */
+
+.output {
+    height: 225px;
+
+    overflow: hidden;
+
+    border-left: 2px solid #00ff41;
+
+    padding-left: 18px;
+
+    font-size: 15px;
+
+    line-height: 1.8;
+
+    text-shadow: 0 0 6px #00ff41;
+}
+
+.line {
+    opacity: 0;
+    animation: appear 0.3s forwards;
+}
+
+/* ================= PROGRESS ================= */
+
+.progress-area {
+    margin-top: 25px;
+}
+
+.progress-text {
+    display: flex;
+    justify-content: space-between;
+
+    margin-bottom: 8px;
+
+    font-size: 14px;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 15px;
+
+    border: 1px solid #00ff41;
+
+    padding: 2px;
+
+    box-shadow: 0 0 10px rgba(0,255,65,0.3);
+}
+
+.progress-fill {
+    width: 0%;
+    height: 100%;
+
+    background: #00ff41;
+
+    box-shadow:
+        0 0 8px #00ff41,
+        0 0 20px #00ff41;
+
+    transition: width 0.15s;
+}
+
+/* ================= QUESTIONS ================= */
+
+#questions {
+    display: none;
+    margin-top: 25px;
+}
+
+.question-box {
+    border: 1px solid rgba(0,255,65,0.5);
+
+    padding: 25px;
+
+    background: rgba(0,255,65,0.025);
+
+    box-shadow:
+        inset 0 0 25px rgba(0,255,65,0.02);
+}
+
+.question-number {
+    color: #00ffff;
+
+    font-size: 13px;
+
+    letter-spacing: 2px;
+
+    margin-bottom: 12px;
+}
+
+.question {
+    font-size: clamp(17px, 2vw, 22px);
+
+    color: #fff;
+
+    margin-bottom: 20px;
+
+    line-height: 1.6;
+
+    text-shadow:
+        0 0 8px rgba(0,255,65,0.5);
+}
+
+.hint {
+    color: #8aff9d;
+
+    font-size: 13px;
+
+    margin-bottom: 15px;
+}
+
+input {
+    width: 100%;
+
+    padding: 14px 15px;
+
+    background: rgba(0,0,0,0.85);
+
+    color: #00ff41;
+
+    border: 1px solid #00ff41;
+
+    outline: none;
+
+    font-family: Consolas, monospace;
+
+    font-size: 16px;
+
+    box-shadow:
+        0 0 10px rgba(0,255,65,0.12);
+
+    transition: 0.2s;
+}
+
+input:focus {
+    box-shadow:
+        0 0 15px rgba(0,255,65,0.35),
+        inset 0 0 10px rgba(0,255,65,0.04);
+}
+
+button {
+    margin-top: 15px;
+
+    padding: 13px 25px;
+
+    background: #00ff41;
+
+    color: #001b07;
+
+    border: none;
+
+    font-family: Consolas, monospace;
+
+    font-weight: bold;
+
+    font-size: 15px;
+
+    cursor: pointer;
+
+    transition: 0.2s;
+}
+
+button:hover {
+    transform: scale(1.04);
+
+    box-shadow:
+        0 0 15px #00ff41,
+        0 0 30px rgba(0,255,65,0.4);
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+.error {
+    margin-top: 15px;
+
+    color: #ff3030;
+
+    text-shadow: 0 0 8px red;
+
+    display: none;
+}
+
+/* ================= ACCESS DENIED ================= */
+
+#denied {
+    display: none;
+
+    text-align: center;
+
+    margin-top: 75px;
+}
+
+.denied-title {
+    font-size: clamp(40px, 8vw, 80px);
+
+    color: #ff2020;
+
+    font-weight: bold;
+
+    text-shadow:
+        0 0 10px red,
+        0 0 25px red,
+        0 0 50px red;
+
+    animation: deniedGlitch 0.7s infinite;
+}
+
+.denied-text {
+    margin-top: 20px;
+
+    color: #ff6b6b;
+
+    font-size: 18px;
+
+    line-height: 1.7;
+}
+
+/* ================= SYSTEM ================= */
+
+#system {
+    display: none;
+
+    margin-top: 30px;
+
+    grid-template-columns: repeat(3, 1fr);
+
+    gap: 15px;
+}
+
+.card {
+    border: 1px solid rgba(0,255,65,0.45);
+
+    padding: 20px;
+
+    background: rgba(0,255,65,0.03);
+
+    transition: 0.3s;
+}
+
+.card:hover {
+    border-color: #00ff41;
+
+    box-shadow:
+        0 0 15px rgba(0,255,65,0.3);
+
+    transform: translateY(-3px);
+}
+
+.card-title {
+    font-size: 12px;
+
+    color: #68ff89;
+
+    letter-spacing: 1px;
+}
+
+.card-value {
+    margin-top: 8px;
+
+    font-size: 20px;
+
+    font-weight: bold;
+}
+
+/* ================= FOOTER ================= */
+
+.footer {
+    margin-top: 25px;
+
+    display: flex;
+
+    justify-content: space-between;
+
+    font-size: 12px;
+
+    color: #5dff7d;
+}
+
+.status {
+    color: #00ff41;
+}
+
+.dot {
+    display: inline-block;
+
+    width: 7px;
+    height: 7px;
+
+    background: #00ff41;
+
+    border-radius: 50%;
+
+    box-shadow: 0 0 10px #00ff41;
+
+    animation: blink 1s infinite;
+}
+
+/* ================= ANIMATIONS ================= */
+
+@keyframes appear {
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes blink {
+    50% {
+        opacity: 0.2;
+    }
+}
+
+@keyframes flicker {
+    0%, 18%, 22%, 63%, 64%, 65%, 100% {
+        opacity: 1;
+    }
+
+    20%, 62% {
+        opacity: 0.65;
+    }
+}
+
+@keyframes deniedGlitch {
+    0% {
+        transform: translate(0);
+    }
+
+    20% {
+        transform: translate(-4px, 2px);
+    }
+
+    40% {
+        transform: translate(4px, -2px);
+    }
+
+    60% {
+        transform: translate(-2px, 1px);
+    }
+
+    80% {
+        transform: translate(2px, -1px);
+    }
+
+    100% {
+        transform: translate(0);
+    }
+}
+
+/* ================= MOBILE ================= */
+
+@media (max-width: 700px) {
+
+    .terminal {
+        padding: 20px;
+        min-height: 550px;
+    }
+
+    #system {
+        grid-template-columns: 1fr;
+    }
+
+    .output {
+        font-size: 13px;
+        height: 190px;
+    }
+
+    .footer {
+        font-size: 10px;
+    }
+}
+
+/* =========================================================
+   LONGDEV AI CORE
+========================================================= */
+.ai-app {
+    position: fixed;
+    z-index: 10;
+    left: 3vw;
+    top: 4vh;
+    width: 94vw;
+    height: 92vh;
+    display: none;
+    flex-direction: column;
+    border: 1px solid rgba(0,255,136,.55);
+    background: rgba(0,10,7,.94);
+    box-shadow: 0 0 35px rgba(0,255,136,.12), inset 0 0 35px rgba(0,255,136,.035);
+    backdrop-filter: blur(5px);
+    color: #00ff88;
+    font-family: Consolas, "Courier New", monospace;
+}
+.ai-app header { min-height:75px; display:flex; align-items:center; justify-content:space-between; padding:0 25px; border-bottom:1px solid rgba(0,255,136,.35); }
+.ai-app .brand { font-size:24px; font-weight:bold; letter-spacing:3px; text-shadow:0 0 12px #00ff88; }
+.ai-app .brand span { display:block; margin-top:5px; font-size:12px; color:#62c99b; letter-spacing:2px; }
+.ai-app .status { display:flex; align-items:center; gap:9px; font-size:12px; }
+.ai-app .dot { width:9px; height:9px; border-radius:50%; background:#00ff88; box-shadow:0 0 12px #00ff88; animation:aiPulse 1.2s infinite; }
+@keyframes aiPulse { 50% { opacity:.35; transform:scale(.75); } }
+.chat { flex:1; overflow-y:auto; padding:24px; }
+.msg { max-width:85%; margin-bottom:18px; padding:14px 16px; border:1px solid rgba(0,255,136,.2); line-height:1.55; white-space:pre-wrap; word-break:break-word; }
+.msg.ai { background:rgba(0,255,136,.045); border-left:3px solid #00ff88; }
+.msg.user { margin-left:auto; background:rgba(0,150,255,.06); border-right:3px solid #20a8ff; color:#bcecff; }
+.tag { margin-bottom:6px; font-size:11px; letter-spacing:2px; opacity:.65; }
+.composer { display:flex; gap:10px; padding:15px; border-top:1px solid rgba(0,255,136,.35); background:rgba(0,7,5,.8); }
+.composer textarea { flex:1; resize:none; height:54px; padding:14px; outline:none; border:1px solid rgba(0,255,136,.4); background:#010604; color:#caffdf; font:15px Consolas,"Courier New",monospace; }
+.composer textarea:focus { border-color:#00ff88; box-shadow:0 0 12px rgba(0,255,136,.12); }
+.ai-send { width:100px; border:1px solid #00ff88; background:rgba(0,255,136,.08); color:#00ff88; font:bold 14px Consolas; cursor:pointer; }
+.ai-send:hover { background:#00ff88; color:#001a0d; box-shadow:0 0 18px rgba(0,255,136,.4); }
+.ai-send:disabled { opacity:.35; cursor:not-allowed; }
+footer { height:30px; display:flex; align-items:center; justify-content:center; border-top:1px solid rgba(0,255,136,.15); color:#438d6c; font-size:10px; letter-spacing:2px; }
+@media(max-width:650px) { .ai-app { width:100vw; height:100vh; left:0; top:0; } .ai-app .brand { font-size:17px; } .ai-app .status { font-size:10px; } .msg { max-width:94%; } }
+
+
+/* ===== LONGDEV AI FINAL SCROLL FIX ===== */
+.ai-app {
+    box-sizing: border-box;
+    display: none;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.ai-app .chat,
+#chat {
+    flex: 1 1 0 !important;
+    min-height: 0 !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding: 24px;
+    display: block;
+    box-sizing: border-box;
+    overscroll-behavior: contain;
+    scrollbar-width: auto;
+}
+
+.ai-app .msg {
+    max-width: 85%;
+    margin-bottom: 18px;
+    padding: 14px 16px;
+    border: 1px solid rgba(0,255,136,.2);
+    line-height: 1.55;
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
+.ai-app .msg.ai {
+    background: rgba(0,255,136,.045);
+    border-left: 3px solid #00ff88;
+}
+
+.ai-app .msg.user {
+    margin-left: auto;
+    background: rgba(0,150,255,.06);
+    border-right: 3px solid #20a8ff;
+    color: #bcecff;
+}
+
+.ai-app .tag {
+    margin-bottom: 6px;
+    font-size: 11px;
+    letter-spacing: 2px;
+    opacity: .65;
+}
+
+.ai-app .composer {
+    flex: 0 0 auto;
+    display: flex;
+    gap: 10px;
+    padding: 15px;
+    border-top: 1px solid rgba(0,255,136,.35);
+    background: rgba(0,7,5,.8);
+}
+
+.ai-app .composer textarea {
+    flex: 1 1 auto;
+    resize: none;
+    height: 54px;
+    padding: 14px;
+    outline: none;
+    border: 1px solid rgba(0,255,136,.4);
+    background: #010604;
+    color: #caffdf;
+    font: 15px Consolas, "Courier New", monospace;
+    box-sizing: border-box;
+}
+
+.ai-app #send {
+    flex: 0 0 100px;
+    width: 100px;
+    border: 1px solid #00ff88;
+    background: rgba(0,255,136,.08);
+    color: #00ff88;
+    font: bold 14px Consolas, "Courier New", monospace;
+    cursor: pointer;
+}
+
+.ai-app footer {
+    flex: 0 0 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-top: 1px solid rgba(0,255,136,.15);
+    color: #438d6c;
+    font-size: 10px;
+    letter-spacing: 2px;
+}
+
+.ai-app .chat::-webkit-scrollbar { width: 10px; }
+.ai-app .chat::-webkit-scrollbar-track { background: #020604; }
+.ai-app .chat::-webkit-scrollbar-thumb { background: #075b39; border-radius: 5px; }
+.ai-app .chat::-webkit-scrollbar-thumb:hover { background: #00ff41; }
+
+</style>
+</head>
+
+<body>
+
+<!-- MATRIX BACKGROUND -->
+<canvas id="matrix"></canvas>
+
+<div class="overlay"></div>
+<div class="scanlines"></div>
+
+
+<div class="container">
+
+<div class="terminal">
+
+    <!-- ================= HEADER ================= -->
+
+    <div class="header">
+
+        <div class="logo">
+            LONGDEV
+        </div>
+
+        <div class="subtitle" id="subtitle">
+            longdev1501.vn // SECURE SYSTEM
+        </div>
+
+    </div>
+
+
+    <!-- ================= LOADING ================= -->
+
+    <div id="loading">
+
+        <div class="output" id="output"></div>
+
+        <div class="progress-area">
+
+            <div class="progress-text">
+
+                <span>
+                    SYSTEM INITIALIZATION
+                </span>
+
+                <span id="percent">
+                    0%
+                </span>
+
+            </div>
+
+            <div class="progress-bar">
+
+                <div
+                    class="progress-fill"
+                    id="progress">
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================= SECURITY QUESTIONS ================= -->
+
+    <div id="questions">
+
+        <div class="question-box">
+
+            <div
+                class="question-number"
+                id="questionNumber">
+                SECURITY QUESTION 01
+            </div>
+
+            <div
+                class="question"
+                id="question">
+            </div>
+
+            <div
+                class="hint"
+                id="hint">
+            </div>
+
+            <input
+                id="answer"
+                type="text"
+                autocomplete="off"
+                placeholder="Nhập câu trả lời..."
+            >
+
+            <button onclick="checkAnswer()">
+                XÁC NHẬN
+            </button>
+
+            <div
+                class="error"
+                id="error">
+                ACCESS DENIED — CÂU TRẢ LỜI KHÔNG CHÍNH XÁC
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================= ACCESS DENIED ================= -->
+
+    <div id="denied">
+
+        <div class="denied-title">
+            ACCESS DENIED
+        </div>
+
+        <div class="denied-text">
+
+            Bạn không vượt qua hệ thống bảo mật.
+
+            <br>
+
+            Quyền truy cập đã bị từ chối.
+
+            <br><br>
+
+            LONGDEV SECURITY SYSTEM
+
+        </div>
+
+    </div>
+
+
+    <!-- ================= SYSTEM ================= -->
+
+    <div id="system">
+
+        <div class="card">
+
+            <div class="card-title">
+                SYSTEM
+            </div>
+
+            <div class="card-value">
+                ONLINE
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-title">
+                SECURITY
+            </div>
+
+            <div class="card-value">
+                VERIFIED
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-title">
+                CORE
+            </div>
+
+            <div class="card-value">
+                LONGDEV
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-title">
+                DOMAIN
+            </div>
+
+            <div class="card-value">
+                longdev1501.vn
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-title">
+                STATUS
+            </div>
+
+            <div class="card-value">
+                SECURE
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-title">
+                ACCESS
+            </div>
+
+            <div class="card-value">
+                GRANTED
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================= FOOTER ================= -->
+
+    <div class="footer">
+
+        <span>
+            SYSTEM BY LONGDEV
+        </span>
+
+        <span class="status">
+
+            <span class="dot"></span>
+
+            ONLINE
+
+        </span>
+
+    </div>
+
+</div>
+
+</div>
+
+
+
+
+<!-- =========================================================
+     LONGDEV AI CORE - HIỆN SAU KHI ACCESS GRANTED
+========================================================= -->
+<div id="aiApp" class="ai-app">
+
+
+<header>
+
+    <div class="brand">
+
+        LONGDEV // AI CORE
+
+        <span>
+            longdev1501.vn
+        </span>
+
+    </div>
+
+    <div class="status">
+
+        <i class="dot"></i>
+
+        AI ONLINE
+
+    </div>
+
+</header>
+
+
+<main class="chat" id="chat">
+
+    <div class="msg ai">
+
+        <div class="tag">
+            LONGDEV AI
+        </div>
+
+        Xin chào. Tôi là AI của LONGDEV.
+
+        Hệ thống đã kết nối thành công.
+
+        Bạn có thể hỏi tôi về:
+        - Lập trình
+        - Máy tính
+        - Học tập
+        - Công nghệ
+        - Hoặc bất cứ điều gì bạn muốn.
+
+    </div>
+
+</main>
+
+
+<div class="composer">
+
+    <textarea
+        id="input"
+        placeholder="Nhập câu hỏi...">
+    </textarea>
+
+    <button id="send">
+        SEND
+    </button>
+
+</div>
+
+
+<footer>
+
+    SECURE AI GATEWAY // LONGDEV1501.VN
+
+</footer>
+
+
+</div>
+
+<script>
+
+/* =========================================================
+   MATRIX RAIN
+========================================================= */
+
+const canvas =
+    document.getElementById("matrix");
+
+const ctx =
+    canvas.getContext("2d");
+
+
+function resizeCanvas() {
+
+    canvas.width =
+        window.innerWidth;
+
+    canvas.height =
+        window.innerHeight;
+}
+
+resizeCanvas();
+
+
+window.addEventListener(
+    "resize",
+    resizeCanvas
+);
+
+
+const characters =
+"01アイウエオカキクケコサシスセソタチツテトナニヌネノABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+
+const fontSize = 16;
+
+
+let columns =
+    Math.floor(
+        window.innerWidth / fontSize
+    );
+
+
+let drops =
+    Array(columns).fill(1);
+
+
+function matrixRain() {
+
+    ctx.fillStyle =
+        "rgba(0, 0, 0, 0.07)";
+
+    ctx.fillRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
+
+
+    ctx.fillStyle =
+        "#00ff41";
+
+    ctx.font =
+        fontSize + "px monospace";
+
+
+    for (
+        let i = 0;
+        i < drops.length;
+        i++
+    ) {
+
+        const char =
+            characters[
+                Math.floor(
+                    Math.random() *
+                    characters.length
+                )
+            ];
+
+
+        ctx.fillText(
+            char,
+            i * fontSize,
+            drops[i] * fontSize
+        );
+
+
+        if (
+            drops[i] * fontSize >
+            canvas.height &&
+            Math.random() > 0.975
+        ) {
+
+            drops[i] = 0;
+
+        }
+
+
+        drops[i]++;
+
+    }
+}
+
+
+setInterval(
+    matrixRain,
+    35
+);
+
+
+/* =========================================================
+   BOOT SYSTEM
+========================================================= */
+
+const output =
+    document.getElementById("output");
+
+
+const bootLines = [
+
+    "[BOOT] Initializing LONGDEV SYSTEM...",
+
+    "[CORE] Loading secure kernel...",
+
+    "[MEMORY] Checking memory modules...",
+
+    "[MEMORY] Memory integrity: OK",
+
+    "[NETWORK] Establishing encrypted connection...",
+
+    "[NETWORK] Secure connection established",
+
+    "[SECURITY] Loading authentication protocols...",
+
+    "[FIREWALL] Firewall initialized",
+
+    "[DATABASE] Connecting to secure database...",
+
+    "[DATABASE] Database connection: OK",
+
+    "[CORE] Starting LONGDEV engine...",
+
+    "[SYSTEM] Preparing authentication interface...",
+
+    "[SYSTEM] Waiting for user authentication..."
+
+];
+
+
+let lineIndex = 0;
+
+
+function addBootLine() {
+
+    if (
+        lineIndex >=
+        bootLines.length
+    ) {
+
+        return;
+
+    }
+
+
+    const line =
+        document.createElement("div");
+
+
+    line.className =
+        "line";
+
+
+    line.textContent =
+        bootLines[lineIndex];
+
+
+    output.appendChild(line);
+
+
+    output.scrollTop =
+        output.scrollHeight;
+
+
+    lineIndex++;
+
+
+    setTimeout(
+        addBootLine,
+        450
+    );
+
+}
+
+
+addBootLine();
+
+
+/* =========================================================
+   LOADING BAR
+========================================================= */
+
+let progress = 0;
+
+
+const progressBar =
+    document.getElementById("progress");
+
+
+const percent =
+    document.getElementById("percent");
+
+
+const loading =
+    document.getElementById("loading");
+
+
+const questions =
+    document.getElementById("questions");
+
+
+const system =
+    document.getElementById("system");
+
+
+const denied =
+    document.getElementById("denied");
+
+
+const question =
+    document.getElementById("question");
+
+
+const questionNumber =
+    document.getElementById("questionNumber");
+
+
+const hint =
+    document.getElementById("hint");
+
+
+const answer =
+    document.getElementById("answer");
+
+
+const error =
+    document.getElementById("error");
+
+
+const subtitle =
+    document.getElementById("subtitle");
+
+
+let progressTimer =
+    setInterval(() => {
+
+        progress +=
+            Math.floor(
+                Math.random() * 3
+            ) + 1;
+
+
+        if (progress >= 100) {
+
+            progress = 100;
+
+
+            clearInterval(
+                progressTimer
+            );
+
+
+            progressBar.style.width =
+                "100%";
+
+
+            percent.textContent =
+                "100%";
+
+
+            setTimeout(
+                startQuestions,
+                800
+            );
+
+        }
+
+
+        progressBar.style.width =
+            progress + "%";
+
+
+        percent.textContent =
+            progress + "%";
+
+
+    }, 90);
+
+
+/* =========================================================
+   SECURITY QUESTIONS
+========================================================= */
+
+const securityQuestions = [
+
+    {
+        number:
+        "SECURITY QUESTION 01",
+
+        question:
+        "Minh Long có đẹp trai không?",
+
+        hint:
+        "Gợi ý: Hệ thống chỉ chấp nhận câu trả lời tích cực.",
+
+        answers: [
+            "có",
+            "co",
+            "yes",
+            "có đẹp trai",
+            "co dep trai"
+        ]
+    },
+
+
+    {
+        number:
+        "SECURITY QUESTION 02",
+
+        question:
+        "Giải phương trình: (x − 15012013)^4 + 17(x − 15012013)^2 = 0. Tìm nghiệm thực x.",
+
+        hint:
+        "Gợi ý: Đặt t = (x − 15012013)^2 rồi giải phương trình theo t.",
+
+        answers: [
+            "15012013",
+            "x=15012013",
+            "x = 15012013",
+            "x= 15012013",
+            "15012013.0"
+        ]
+    },
+
+
+    {
+        number:
+        "SECURITY QUESTION 03",
+
+        question:
+        "Ngày tháng năm sinh của Long là gì?",
+
+        hint:
+        "Gợi ý: ngày tháng năm sinh Long.",
+
+        answers: [
+            "15012013",
+            "15/01/2013",
+            "15-01-2013",
+            "15.01.2013",
+            "15 01 2013",
+            "15 1 2013"
+        ]
+    }
+
+];
+
+
+let currentQuestion = 0;
+
+
+/* =========================================================
+   START SECURITY
+========================================================= */
+
+function startQuestions() {
+
+    loading.style.display =
+        "none";
+
+
+    questions.style.display =
+        "block";
+
+
+    currentQuestion = 0;
+
+
+    subtitle.textContent =
+        "longdev1501.vn // AUTHENTICATION REQUIRED";
+
+
+    showQuestion();
+
+}
+
+
+/* =========================================================
+   SHOW QUESTION
+========================================================= */
+
+function showQuestion() {
+
+    const q =
+        securityQuestions[
+            currentQuestion
+        ];
+
+
+    questionNumber.textContent =
+        q.number;
+
+
+    question.textContent =
+        q.question;
+
+
+    hint.textContent =
+        q.hint;
+
+
+    answer.value = "";
+
+
+    error.style.display =
+        "none";
+
+
+    setTimeout(() => {
+
+        answer.focus();
+
+    }, 100);
+
+}
+
+
+/* =========================================================
+   CHECK ANSWER
+========================================================= */
+
+function checkAnswer() {
+
+    const value =
+        answer.value
+            .trim()
+            .toLowerCase();
+
+
+    const q =
+        securityQuestions[
+            currentQuestion
+        ];
+
+
+    const correct =
+        q.answers.some(
+            item =>
+            item.toLowerCase() === value
+        );
+
+
+    if (!correct) {
+
+        denyAccess();
+
+        return;
+
+    }
+
+
+    currentQuestion++;
+
+
+    if (
+        currentQuestion >=
+        securityQuestions.length
+    ) {
+
+        unlockSystem();
+
+        return;
+
+    }
+
+
+    showQuestion();
+
+}
+
+
+/* =========================================================
+   ACCESS DENIED
+========================================================= */
+
+function denyAccess() {
+
+    questions.style.display =
+        "none";
+
+
+    loading.style.display =
+        "none";
+
+
+    system.style.display =
+        "none";
+
+
+    denied.style.display =
+        "block";
+
+
+    subtitle.textContent =
+        "longdev1501.vn // ACCESS DENIED";
+
+
+    document.title =
+        "ACCESS DENIED // longdev1501.vn";
+
+}
+
+
+/* =========================================================
+   ACCESS GRANTED
+========================================================= */
+
+function unlockSystem() {
+
+    questions.style.display =
+        "none";
+
+
+    denied.style.display =
+        "none";
+
+
+    system.style.display =
+        "none";
+
+
+    document.getElementById("aiApp").style.display =
+        "flex";
+
+
+    subtitle.textContent =
+        "longdev1501.vn // ACCESS GRANTED";
+
+
+    document.title =
+        "longdev1501.vn";
+
+
+    document.body.style.cursor =
+        "default";
+
+}
+
+
+/* =========================================================
+   ENTER KEY
+========================================================= */
+
+answer.addEventListener(
+    "keydown",
+    function(event) {
+
+        if (
+            event.key === "Enter"
+        ) {
+
+            checkAnswer();
+
+        }
+
+    }
+);
+
+
+
+/* =========================================================
+   AI CHAT - gọi server.js /api/chat
+========================================================= */
+const aiChat = document.getElementById("chat");
+const aiInput = document.getElementById("input");
+const aiSend = document.getElementById("send");
+let aiHistory = [];
+
+function aiAddMessage(role, text) {
+    const box = document.createElement("div");
+    box.className = "msg " + (role === "user" ? "user" : "ai");
+    const tag = document.createElement("div");
+    tag.className = "tag";
+    tag.textContent = role === "user" ? "YOU" : "LONGDEV AI";
+    const content = document.createElement("div");
+    content.textContent = text;
+    box.appendChild(tag);
+    box.appendChild(content);
+    aiChat.appendChild(box);
+    aiChat.scrollTop = aiChat.scrollHeight;
+    return box;
+}
+
+async function askAI() {
+    const text = aiInput.value.trim();
+    if (!text || aiSend.disabled) return;
+    aiInput.value = "";
+    aiAddMessage("user", text);
+    aiHistory.push({ role:"user", content:text });
+    aiSend.disabled = true;
+    aiInput.disabled = true;
+    const loading = aiAddMessage("ai", "Đang kết nối AI...");
+    try {
+        const response = await fetch("/api/chat", {
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({messages:aiHistory})
+        });
+        const data = await response.json();
+        loading.remove();
+        if (!response.ok) throw new Error(data.error || "Server error");
+        aiAddMessage("ai", data.reply);
+        aiHistory.push({ role:"assistant", content:data.reply });
+    } catch (error) {
+        loading.remove();
+        aiAddMessage("ai", "[ERROR] Không thể kết nối AI.\
+\
+" + error.message + "\
+\
+Hãy kiểm tra server Node.js và API key.");
+        aiHistory.pop();
+    } finally {
+        aiSend.disabled = false;
+        aiInput.disabled = false;
+        aiInput.focus();
+    }
+}
+
+aiSend.addEventListener("click", askAI);
+aiInput.addEventListener("keydown", e => {
+    if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        askAI();
+    }
+});
+
+</script>
+
+</body>
+</html>
